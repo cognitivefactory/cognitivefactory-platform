@@ -3,28 +3,35 @@
 ## Concepts
 
 **Cognitive Platform** : Fully integrated set of tools designed to help *companies* build, deploy and maintain cognitive solutions at scale, using an industrialized and secure workflow.
-- Companies already run very rich and complex IT systems, mostly made of traditional computer programs working on structured data
+- Companies run very rich and complex IT systems, mostly made of traditional computer programs working on structured data
 - The advent of more efficient machine learning techniques gives them an opportunity to automate new tasks, by extending the reach of the IT system to unstructured data (text, images, voice) and more sophisticated predictions
 - To stay competitive, companies need to introduce a new type of component in their applications : models trained by example
-- The methods, workflows, tools needed to build and maintain this new family of components are quite different from the traditional developer toolset : many new capabilities need to be built at once, and this is really hard in a corporate environment
-- When building cognitive solutions at the scale of a company, it is also very important to be able to share and reuse a lot of elements between projects : for example, all projects will work on the same company language, the company will want to know what customers said about a specific topic on all channels, etc ...
-- Fairness, robustness, auditability are difficult issues with trained models, a lot of regulations apply to "AI solutions" (for example GDPR) : these requirements can only be satisfied if they are embedded by design in a end to end workflow
-- That's why companies need a single integrated platform to manage their cognitive models end to end : working with custom solutions for each application is not economically viable
-- The goal of the Cognitive Platform to provide ...
+- The methods, workflows, and tools needed to create and maintain this new family of components are quite different from the traditional developer toolset : many new capabilities need to be built in a coordinated way across the company
+- When building cognitive solutions at the scale of a company, it is also critical to be able to share and reuse a lot of building blocks between projects : for example, all projects will work on the same company language, the customers will mention the same topics on all communication channels, etc ...
+- New regulations apply to "AI solutions" : in addition to personal data protection issues, auditability, robustness, and fairness need to be explicitly managed. These requirements can only be satisfied if they are embedded by design in an end to end workflow
+- That's why companies need a single integrated platform to manage the full lifecycle of their cognitive services : working with custom solutions for each application is not economically viable
+- The Cognitive Platform is meant to complement the existing IT system : it should be designed to integrate seamlessly in any kind of corporate environment, and build on existing capabilities 
 
-**Clusters and Namespaces** : All elements of the self-contained Cognitive Platform 
-- Kubernetes Objects
-- Region, zones
+**Clusters and Namespaces** : All elements of the self-contained Cognitive Platform run on Kubernetes clusters.
+- The IT operations team of the company is responsible to provide, secure and manage Kubernetes clusters with API version >= 1.18.
+- The number and types of clusters is chosen based on data isolation and resiliency requirements : the entire *Cognitive Platform* can be deployed on a single node or on many muti-zone clusters.
+- Types of clusters and resiliency considered in this document : single-node (evaluation), multi-nodes (hardware failure), multi-zones (datacenter failure), multi-region (major natural disaster).
+- To make it easier to evaluate the platform, a simple installer is provided to create a single node installation on a Windows or Linux machine with minimal requirements.
+- In a corporate IT system, the platform will never require privileges at the cluster level : all platform components are deployed in Kubernetes namespaces.
+- These Kubernetes namespaces are created by the IT operations teams, with controlled privileges limited to the scope of the namespace.
+- The list of clusters, namespaces and credentials to work in these namespaces are then provided to the platform installation tools.
 
-**Platform Environment** : Set of Kubernetes Objects
-- Each environment is deployed as a separate Kubernetes namespace
-- If regional disaster recovery is not required, this namespace can be deployed on a 
-- If regional disaster recovery two
+**Execution Environment** : Logical isolation and resiliency boundary implemented on top of the infrastructure and used to store data and execute components. 
+- Each Execution Environment is mapped to either one Kubernetes namespace (single region environment) or two Kubernetes namespaces located on two distant clusters (multi regions environment).
+- Execution Environments are reachable through distinct DNS subdomains so that firewall rules can restrict accesses, and distinct privileges need to be granted to access two distinct environments.
+- Specific network rules restrict the data flows and service calls allowed between Execution Environments.
+- A single distributed database instance is deployed in each Execution Environment : all data and files are stored in this unique database.
+- The Execution Environment is the unit of backup and restore in case of a major disaster : because all data is stored in a single database, you only need to restore the database backup to restore the environment.
 
-**Platform Installation** : Set of Platform Environments managed by a *a single IT operations team*. 
+**Platform Installation** : Set of Execution Environments managed by a *a single IT operations team*. 
 - For example : all environments managed by a transversal IT organization inside a multi-companies corporate group.
-- A specific *Platform Installation Operations Environment* is associated with a *Platform Installation*
-- This unique environment centralizes the IT monitoring inforomations and the low level management operations for all the other environments
+- A special and unique *Platform Installation Execution Environment* is always associated with a *Platform Installation*
+- This special environment centralizes the IT monitoring information and the low level management operations for all the other environments
 
 **Tenant Instances** : A Platform Installation is a collection of strictly separated Tenant Instances. 
 - *No data should be shared* between two Tenant Instances.
@@ -38,7 +45,7 @@
 - *uat* : used by future users to perform user acceptance tests on the trained solutions, by executing the end to end business process.
 - *prod* : production environment with high availability and strict data isolation - no IT team member can ever see the raw data, the only environment where personal data is allowed.
 
-**Platform Workspaces** : Each 
+**Platform Workspaces** : 
 
 **Cognitive Solutions** :
 
