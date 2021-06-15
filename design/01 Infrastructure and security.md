@@ -45,10 +45,18 @@
 - *uat* : used by future users to perform user acceptance tests on the trained solutions, by executing the end to end business process.
 - *prod* : production environment with high availability and strict data isolation - no IT team member can ever see the raw data, the only environment where personal data is allowed.
 
-**Platform Workspaces** : 
-
-**Cognitive Solutions** :
-
+**Tenant Workspaces** : A workspace groups a set of related experiences to manage a specific concern, its is hosted on a specific DNS subdomain and is dedicated to a specific family of users.
+- Each Lifecycle Environment hosts a subset of the following workspaces :
+- *operations* : Tenants, Environements, Upgrade, Backup, Monitor, Alert, Security (incl. secrets), Quotas [=> IT operations].
+- *admin* : Teams, Roles, Builders, Subscriptions, Provisioning, Usage, Billing [=> Tenant Instance administrators].
+- *project* : Projects, Issues, Tasks, Notifications, Dashboards, Tests, Audit [=> Builders cooperation]
+- *train* : Datalab, Models, Experiments, Performances, Continuous Improvement, Integrations [=> Data scientists]
+- *develop* : Services, Pipelines, Jobs, Sources, Versions, Tests, Package, Deploy, Dependencies [=> IT developers].
+- *integrate* : Applications, UI elements, Connections, Data sources, Events, Orchestrate, Components, Plugins [=> IT integrators]
+- *data* : Ingestion, Export, Convert, Index, Datalab, Explore, Logs, Stats [=> Data engineers]
+- *business* : Orgs, Users, Concepts, Goals, Catalog, Annote, Stats, Dashboards, Knowledge graph [=> Business experts]
+- *run* : Deployed apps and services [=> Users]
+- *supervision* : Real time stats, Data exploration, Performance audit [=> Business process owners]
 
 **Builders and Users**
 - **Builders** are all the experts who collaborate to build and improve a cognitive solution
@@ -65,4 +73,4 @@
   - **Resources** are the artefacts used in the process of building a cognitive solution are different kind of **Resources** : data, models, code, metadata ...
   - *Teams* work on *Projects*
   - *Resources* can only be browsed, modified and deployed in the context of a *Project*
-  - acces ritghs are granted  
+  - Access rights are granted in the context of a *Project*
