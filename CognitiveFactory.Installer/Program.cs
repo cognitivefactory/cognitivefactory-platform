@@ -23,20 +23,31 @@ namespace CognitiveFactory.Installer
                     if (!PlatformDetection.IsWindows10Version1903OrGreater)
                     {
                         var winver = Environment.OSVersion.Version;
-                        AnsiConsole.MarkupLine(String.Format("[red]Sorry, Windows 10 version 1903 (build number > 18362) is required[/] (your version = \"{0}\")", winver));
+                        AnsiConsole.MarkupLine($"[red]Sorry, Windows 10 version 1903 (build number > 18362) is required[/] (your version = \"{winver}\")");
                         return 1;
                     } 
                     else
                     {
-                        AnsiConsole.MarkupLine("Windows version [bold green]OK[/]");
-                        AnsiConsole.WriteLine();
-                        DoWindowsInstall();
+                        var winarch = RuntimeInformation.ProcessArchitecture;
+                        if (winarch != Architecture.X64)
+                        {
+                            AnsiConsole.MarkupLine($"[red]Sorry, the Windows subsystem from Linux is only supported on x64 systems[/] (your architecture = \"{winarch}\")");
+                            return 1;
+                        }
+                        else
+                        {
+                            AnsiConsole.MarkupLine("Windows version [bold green]OK[/]");
+                            AnsiConsole.WriteLine();
+                        }
                     }
                 }
                 catch(Exception e)
                 {
                     AnsiConsole.MarkupLine("[red]Failed to check Windows version[/]");
-                } 
+                    return 1;
+                }
+
+                DoWindowsInstall();
             } 
             else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
@@ -48,7 +59,7 @@ namespace CognitiveFactory.Installer
                     if (!PlatformDetection.IsUbuntu1804OrHigher)                            
                     {
                         var linuxdistro = PlatformDetection.GetDistroInfo();
-                        AnsiConsole.MarkupLine(String.Format("[red]Sorry, Ubuntu version 1804 is required[/] (your distribution = \"{0} {1}\")", linuxdistro.Id, linuxdistro.VersionId));
+                        AnsiConsole.MarkupLine($"[red]Sorry, Ubuntu version 1804 is required[/] (your distribution = \"{linuxdistro.Id} {linuxdistro.VersionId}\")");
                         return 1;
                     }
                     else
@@ -56,7 +67,7 @@ namespace CognitiveFactory.Installer
                         var linuxver = Environment.OSVersion.Version;
                         if (linuxver.Major < 5 || (linuxver.Major == 5 && linuxver.Minor < 4))
                         {
-                            AnsiConsole.MarkupLine(String.Format("[red]Sorry, Linux kernel version > 5.4 is required[/] (your version = \"{0}\")", linuxver));
+                            AnsiConsole.MarkupLine($"[red]Sorry, Linux kernel version > 5.4 is required[/] (your version = \"{linuxver}\")");
                             return 1;
                         }
                         else
@@ -64,14 +75,16 @@ namespace CognitiveFactory.Installer
 
                             AnsiConsole.MarkupLine("Linux version [bold green]OK[/]");
                             AnsiConsole.WriteLine();
-                            DoLinuxInstall();
                         }
                     }
                 }
                 catch (Exception e)
                 {
                     AnsiConsole.MarkupLine("[red]Failed to check Linux version[/]");
+                    return 1;
                 }
+
+                DoLinuxInstall();
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -97,7 +110,7 @@ namespace CognitiveFactory.Installer
 
         private static void DoWindowsInstall()
         {
-            
+            Windows.Wsl.CheckVersion();
         }
 
         private static void DoLinuxInstall()
