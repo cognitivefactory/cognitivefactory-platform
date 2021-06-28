@@ -16,7 +16,9 @@ namespace CognitiveFactory.Installer
                 proc.StartInfo.Arguments = arguments;
                 proc.StartInfo.UseShellExecute = false;
                 proc.StartInfo.CreateNoWindow = true;
+                proc.StartInfo.StandardOutputEncoding = Encoding.Unicode;
                 proc.StartInfo.RedirectStandardOutput = true;
+                proc.StartInfo.StandardErrorEncoding = Encoding.Unicode;
                 proc.StartInfo.RedirectStandardError = true;
                 proc.Start();
 

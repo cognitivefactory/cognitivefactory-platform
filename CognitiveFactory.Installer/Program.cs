@@ -8,9 +8,9 @@ namespace CognitiveFactory.Installer
     {
         static int Main(string[] args)
         {
-            AnsiConsole.MarkupLine("[bold navy on paleturquoise1]---------------------------------------[/]");
-            AnsiConsole.MarkupLine("[bold navy on paleturquoise1]| CognitiveFactory Platform Installer |[/]");
-            AnsiConsole.MarkupLine("[bold navy on paleturquoise1]---------------------------------------[/]");
+            AnsiConsole.MarkupLine("[bold navy on grey93] ----------------------------------- [/]");
+            AnsiConsole.MarkupLine("[bold navy on grey93] CognitiveFactory Platform Installer [/]");
+            AnsiConsole.MarkupLine("[bold navy on grey93] ----------------------------------- [/]");
             AnsiConsole.WriteLine();
 
             AnsiConsole.MarkupLine("1. [underline]Checking operating system[/] :");
@@ -47,13 +47,10 @@ namespace CognitiveFactory.Installer
                     return 1;
                 }
 
-                DoWindowsInstall();
+                return DoWindowsInstall();
             } 
             else if(RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                // https://www.cyberciti.biz/faq/how-to-check-os-version-in-linux-command-line/
-                // https://github.com/dotnet/core-setup/blob/master/src/managed/Microsoft.DotNet.PlatformAbstractions/Native/NativeMethods.Unix.cs
-
                 try
                 {                    
                     if (!PlatformDetection.IsUbuntu1804OrHigher)                            
@@ -72,7 +69,6 @@ namespace CognitiveFactory.Installer
                         }
                         else
                         {
-
                             AnsiConsole.MarkupLine("Linux version [bold green]OK[/]");
                             AnsiConsole.WriteLine();
                         }
@@ -84,7 +80,7 @@ namespace CognitiveFactory.Installer
                     return 1;
                 }
 
-                DoLinuxInstall();
+                return DoLinuxInstall();
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
             {
@@ -101,21 +97,54 @@ namespace CognitiveFactory.Installer
                 AnsiConsole.MarkupLine("[red]Sorry, your operating system is not supported[/]");
                 return 1;
             }
+        }
 
-            Console.WriteLine($"Running as admin ? {AdminHelpers.IsProcessElevated()}");
-            Console.ReadLine();
+        private static int DoWindowsInstall()
+        {
+            AnsiConsole.MarkupLine("2. [underline]Checking Windows Subsystem for Linux[/] :");
+            AnsiConsole.WriteLine();
+
+            switch(Windows.Wsl.CheckWSLVersion())
+            {
+                case -1:
+                    AnsiConsole.MarkupLine("[red]Windows Subsystem For Linux 2 is not installed[/]");
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.MarkupLine("Please go to [yellow underline]https://docs.microsoft.com/en-us/windows/wsl/install-win10[/] and follow the instructions");
+                    AnsiConsole.MarkupLine("Select the following Linux distribution : [white]Ubuntu 20.04[/]");
+                    AnsiConsole.WriteLine();
+                    return 1;
+                case 0:
+                    AnsiConsole.MarkupLine("Windows Subsystem For Linux 2 seems to be activated, but [red]no Linux distribution is installed[/]");
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.MarkupLine("Please go to the URL below and select the following Linux distribution : [white]Ubuntu 20.04[/]");
+                    AnsiConsole.MarkupLine("[yellow underline]https://docs.microsoft.com/en-us/windows/wsl/install-win10#step-6---install-your-linux-distribution-of-choice[/]");
+                    AnsiConsole.WriteLine();
+                    return 1;
+                case 1:                
+                    AnsiConsole.MarkupLine("Windows Subsystem For Linux 2 seems to be activated, but [red]your default Linux distribution is using WSL 1[/]");
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.MarkupLine("Please use one of the commands below to migrate your distribution to WSL 2 or select another distribution :");
+                    AnsiConsole.MarkupLine("[white]wsl --set-version <Distribution> 2[/] or  [white]wsl --set-default <Distribution>[/]");
+                    AnsiConsole.WriteLine();
+                    return 1;
+                case 2:
+                    AnsiConsole.MarkupLine("Windows Subsystem For Linux [bold green]OK[/]");
+                    AnsiConsole.WriteLine();
+                    break;
+            }
+
+            AnsiConsole.MarkupLine("3. [underline]Checking Docker Desktop[/] :");
+            AnsiConsole.WriteLine();
 
             return 0;
         }
 
-        private static void DoWindowsInstall()
+        private static int DoLinuxInstall()
         {
-            Windows.Wsl.CheckVersion();
-        }
+            Console.WriteLine($"Running as admin ? {AdminHelpers.IsProcessElevated()}");
+            Console.ReadLine();
 
-        private static void DoLinuxInstall()
-        {
-
+            return 0;
         }
     }
 }
