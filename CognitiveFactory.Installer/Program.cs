@@ -133,6 +133,8 @@ namespace CognitiveFactory.Installer
                     break;
             }
 
+            Windows.Wsl.CheckKernelVersion();
+
             AnsiConsole.MarkupLine("3. [underline]Checking Docker Desktop[/] :");
             AnsiConsole.WriteLine();
 

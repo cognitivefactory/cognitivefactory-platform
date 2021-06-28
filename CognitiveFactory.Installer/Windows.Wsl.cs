@@ -20,7 +20,7 @@ namespace CognitiveFactory.Installer.Windows
             {
                 string output;
                 string error;
-                int exitcode = Process.Run("wsl.exe", "-l -v", 5, out output, out error);
+                int exitcode = Process.Run("wsl.exe", "-l -v", 5, out output, out error, true);
                 if (exitcode == 0 && String.IsNullOrEmpty(error))
                 {
                     if (String.IsNullOrEmpty(output))
@@ -49,9 +49,41 @@ namespace CognitiveFactory.Installer.Windows
             return -1;
         }
 
+        // Executes : wsl -- uname -r
+        // Returns  :  
+        // Version object if kernel version was correctly parsed
+        // null otherwise
         public static Version CheckKernelVersion()
         {
-            return new Version();
+            try
+            {
+                string output;
+                string error;
+                int exitcode = Process.Run("wsl.exe", "-- uname -r", 5, out output, out error);
+                if (exitcode == 0 && String.IsNullOrEmpty(error) && !String.IsNullOrEmpty(output))
+                {
+                    int firstDot = output.IndexOf('.');
+                    int secondDot = output.IndexOf('.', firstDot + 1);
+                    if(firstDot > 0 && secondDot > firstDot)
+                    {
+                        var major = Int32.Parse(output.Substring(0, firstDot));
+                        var minor = Int32.Parse(output.Substring(firstDot+1, secondDot-firstDot-1));
+                        return new Version(major, minor);
+                    }
+                }
+            }
+            catch (Exception)
+            { }
+            return null;
+        }
+
+        // Executes : wsl -- cat /etc/*-release
+        // Returns  :  
+        // true if the default distribution launched by the wsl command is Ubuntu
+        // false otherwise
+        public static bool CheckUbuntuDistribution()
+        {
+            return false;
         }
     }
 }
