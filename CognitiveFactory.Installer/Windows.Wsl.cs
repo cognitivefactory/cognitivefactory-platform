@@ -81,8 +81,43 @@ namespace CognitiveFactory.Installer.Windows
         // Returns  :  
         // true if the default distribution launched by the wsl command is Ubuntu
         // false otherwise
-        public static bool CheckUbuntuDistribution()
+        public static bool CheckUbuntuDistribution(out string distrib, out string version)
         {
+            distrib = "unknown";
+            version = "?";
+            try
+            {
+                string output;
+                string error;
+                int exitcode = Process.Run("wsl.exe", "-- cat /etc/*-release", 5, out output, out error);
+                if (exitcode == 0 && String.IsNullOrEmpty(error) && !String.IsNullOrEmpty(output))
+                {
+                    var lines = output.Split('\n');
+                    foreach(var line in lines)
+                    {
+                        if (line.StartsWith("DISTRIB_ID="))
+                        {
+                            distrib = line.Substring(11);
+                        }
+                        else if (line.StartsWith("DISTRIB_RELEASE="))
+                        {
+                            version = line.Substring(16);
+                        }
+                    }
+                    var major = Int32.Parse(version.Substring(0, 2));
+                    if( String.Compare(distrib, "Ubuntu", StringComparison.InvariantCultureIgnoreCase) == 0 &&
+                        major >= 18)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
+            catch (Exception)
+            { }
             return false;
         }
     }
