@@ -13,7 +13,7 @@ namespace CognitiveFactory.Installer
             AnsiConsole.MarkupLine("[bold navy on grey93] ----------------------------------- [/]");
             AnsiConsole.WriteLine();
 
-            AnsiConsole.MarkupLine("1. [underline]Checking operating system[/] :");
+            AnsiConsole.MarkupLine("1. [underline]Check operating system[/] :");
             AnsiConsole.WriteLine();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -111,7 +111,7 @@ namespace CognitiveFactory.Installer
 
         private static int DoWindowsInstall()
         {
-            AnsiConsole.MarkupLine("2. [underline]Checking Windows Subsystem for Linux[/] :");
+            AnsiConsole.MarkupLine("2. [underline]Check Windows Subsystem for Linux[/] :");
             AnsiConsole.WriteLine();
 
             switch(Windows.Wsl.CheckWSLVersion())
@@ -163,14 +163,14 @@ namespace CognitiveFactory.Installer
 
             AnsiConsole.MarkupLine("Windows Subsystem For Linux [bold green]OK[/]");
             AnsiConsole.WriteLine();
-            AnsiConsole.WriteLine("Please note that you can set the number of processors and the amount of memory assigned to the WSL VM in :");
+            AnsiConsole.WriteLine("Please note that you can limit the number of processors and the amount of memory assigned to the WSL VM in :");
             AnsiConsole.MarkupLine($"[white]{Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile)}\\.wslconfig[/]");
             AnsiConsole.WriteLine();
             AnsiConsole.WriteLine("You can visit the URL below for details :");
             AnsiConsole.MarkupLine("[yellow underline]https://docs.microsoft.com/en-us/windows/wsl/wsl-config#configure-global-options-with-wslconfig[/]");
             AnsiConsole.WriteLine();
 
-            AnsiConsole.MarkupLine("3. [underline]Checking Docker Desktop[/] :");
+            AnsiConsole.MarkupLine("3. [underline]Check Docker Desktop[/] :");
             AnsiConsole.WriteLine();
 
             if (Windows.Docker.CheckPreviousDockerVersionInWsl())
@@ -182,9 +182,52 @@ namespace CognitiveFactory.Installer
                 return 1;
             }
 
-            // https://docs.docker.com/docker-for-windows/wsl/
-            // https://hub.docker.com/editions/community/docker-ce-desktop-windows/
+            var winDockerVersion = Windows.Docker.CheckWindowsDockerVersion();
+            if(winDockerVersion == null)
+            {
+                AnsiConsole.MarkupLine($"[red]Docker Desktop for Windows is not installed[/]");
+                AnsiConsole.MarkupLine("Please go to the URL below to install Docker Desktop with the [white]WSL 2 backend[/] :");
+                AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/docker-for-windows/install/[/]");
+                AnsiConsole.WriteLine();
+                return 1;
+            } 
+            else if (winDockerVersion.Major<20 || (winDockerVersion.Major==20 && winDockerVersion.Minor<10))
+            {
+                AnsiConsole.MarkupLine($"[red]Sorry, Docker Desktop for Windows version > 20.10 is required[/] (your version = \"{winDockerVersion}\")");
+                AnsiConsole.MarkupLine("Please go to the URL below to learn how to update Docker Desktop :");
+                AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/docker-for-windows/install/#updates[/]");
+                AnsiConsole.WriteLine();
+                return 1;
+            }
 
+            var linuxDockerVersion = Windows.Docker.CheckWindowsDockerVersion(fromWSL:true);
+            if (linuxDockerVersion == null)
+            {
+                AnsiConsole.MarkupLine($"[red]Docker is not available in Windows Subsystem for Linux[/] because Docker Desktop is not running");
+                AnsiConsole.MarkupLine("Please go to the URL below to learn how to start Docker Desktop [white]from the Windows Start menu[/] :");
+                AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/docker-for-windows/install/#start-docker-desktop[/]");
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+
+            AnsiConsole.MarkupLine("Docker Desktop for Windows [bold green]OK[/]");
+            AnsiConsole.WriteLine();
+            AnsiConsole.WriteLine("Please note that the Cognitive Factory Platform will :");
+            AnsiConsole.WriteLine("- start (and consume memory) as soon as you start Docker Desktop");
+            AnsiConsole.WriteLine("- stop (and release memory) a few seconds after you stop Docker Desktop");
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("To make sure memory is used only when needed, you can disable the setting \"[white]Start Docker Desktop when you log in[/]\"");
+            AnsiConsole.WriteLine("You can visit the URL below for details on how to modify this setting :");
+            AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/docker-for-windows/#general[/]");
+            AnsiConsole.WriteLine();
+
+            AnsiConsole.MarkupLine("4. [underline]Switch to Linux to continue[/] :");
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("You are now [bold green]READY[/] to continue the install procedure in Linux");
+            AnsiConsole.WriteLine();
+            AnsiConsole.MarkupLine("Open your Ubuntu command shell in Windows Subsystem for Linux and execute the command below :");
+            AnsiConsole.MarkupLine("[white]wget https://www.cognitivefactory.fr/download/cognitivefactory && chmod u+x cognitivefactory && cognitivefactory[/]");
+            AnsiConsole.WriteLine();
             return 0;
         }
 
@@ -192,6 +235,8 @@ namespace CognitiveFactory.Installer
         {
             Console.WriteLine($"Running as admin ? {AdminHelpers.IsProcessElevated()}");
             Console.ReadLine();
+
+            // https://hub.docker.com/editions/community/docker-ce-desktop-windows/
 
             return 0;
         }
