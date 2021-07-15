@@ -46,6 +46,16 @@ C:\Users\laure\AppData\Local\Docker\wsl\data
 
 ext4.vhdx : **890 Mo**
 
+# Linux
+
+## k3d install
+
+/usr/local/bin/k3d : **16 Mo**
+
+## k3d 3 nodes cluster
+
+
+
 # Kubernetes
 
 ## YugabyteDB

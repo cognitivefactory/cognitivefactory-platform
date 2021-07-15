@@ -16,32 +16,30 @@ namespace CognitiveFactory.Installer
             AnsiConsole.MarkupLine("1. [underline]Check operating system[/] :");
             AnsiConsole.WriteLine();
 
+            var arch = RuntimeInformation.ProcessArchitecture;
+            if (arch != Architecture.X64)
+            {
+                AnsiConsole.MarkupLine($"[red]Sorry, the CognitiveFactory Platform is only supported on x64 systems[/] (your architecture = \"{arch}\")");
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {                
                 try
-                {
-                    var winarch = RuntimeInformation.ProcessArchitecture;
-                    if (winarch != Architecture.X64)
+                {                    
+                    if (!PlatformDetection.IsWindows10Version1903OrGreater)
                     {
-                        AnsiConsole.MarkupLine($"[red]Sorry, the CognitiveFactory Platform is only supported on x64 systems[/] (your architecture = \"{winarch}\")");
+                        var winver = Environment.OSVersion.Version;
+                        AnsiConsole.MarkupLine($"[red]Sorry, Windows 10 version 1903 (build number > 18362) is required[/] (your version = \"{winver}\")");
+                        AnsiConsole.MarkupLine("Please open Windows Update [yellow underline]ms-settings:windowsupdate[/] and check if a new version is available");
                         AnsiConsole.WriteLine();
                         return 1;
-                    }
+                    } 
                     else
-                    {
-                        if (!PlatformDetection.IsWindows10Version1903OrGreater)
-                        {
-                            var winver = Environment.OSVersion.Version;
-                            AnsiConsole.MarkupLine($"[red]Sorry, Windows 10 version 1903 (build number > 18362) is required[/] (your version = \"{winver}\")");
-                            AnsiConsole.MarkupLine("Please open Windows Update [yellow underline]ms-settings:windowsupdate[/] and check if a new version is available");
-                            AnsiConsole.WriteLine();
-                            return 1;
-                        } 
-                        else
-                        {                        
-                            AnsiConsole.MarkupLine("Windows version [bold green]OK[/]");
-                            AnsiConsole.WriteLine();
-                        }
+                    {                        
+                        AnsiConsole.MarkupLine("Windows version [bold green]OK[/]");
+                        AnsiConsole.WriteLine();
                     }
                 }
                 catch(Exception e)
@@ -60,7 +58,7 @@ namespace CognitiveFactory.Installer
                     if (!PlatformDetection.IsUbuntu1804OrHigher)                            
                     {
                         var linuxdistro = PlatformDetection.GetDistroInfo();
-                        AnsiConsole.MarkupLine($"[red]Sorry, Ubuntu version > 18.04 is required[/] (your distribution = \"{linuxdistro.Id} {linuxdistro.VersionId}\")");
+                        AnsiConsole.MarkupLine($"[red]Sorry, Ubuntu version >= 18.04 is required[/] (your distribution = \"{linuxdistro.Id} {linuxdistro.VersionId}\")");
                         AnsiConsole.WriteLine();
                         return 1;
                     }
@@ -69,7 +67,7 @@ namespace CognitiveFactory.Installer
                         var linuxver = Environment.OSVersion.Version;
                         if (linuxver.Major < 5 || (linuxver.Major == 5 && linuxver.Minor < 4))
                         {
-                            AnsiConsole.MarkupLine($"[red]Sorry, Linux kernel version > 5.4 is required[/] (your version = \"{linuxver}\")");
+                            AnsiConsole.MarkupLine($"[red]Sorry, Linux kernel version >= 5.4 is required[/] (your version = \"{linuxver}\")");
                             AnsiConsole.WriteLine();
                             return 1;
                         }
@@ -144,7 +142,7 @@ namespace CognitiveFactory.Installer
             var linuxver = Windows.Wsl.CheckKernelVersion();
             if (linuxver.Major < 5 || (linuxver.Major == 5 && linuxver.Minor < 4))
             {
-                AnsiConsole.MarkupLine($"[red]Sorry, Linux kernel version > 5.4 is required in Windows Subsystem For Linux[/] (your version = \"{linuxver}\")");
+                AnsiConsole.MarkupLine($"[red]Sorry, Linux kernel version >= 5.4 is required in Windows Subsystem For Linux[/] (your version = \"{linuxver}\")");
                 AnsiConsole.MarkupLine("Please download and execute the latest update at [yellow underline]https://aka.ms/wsl2kernel[/]");
                 AnsiConsole.WriteLine();
                 return 1;
@@ -154,7 +152,7 @@ namespace CognitiveFactory.Installer
             string distribver;
             if(!Windows.Wsl.CheckUbuntuDistribution(out distrib, out distribver))
             {
-                AnsiConsole.MarkupLine($"[red]Sorry, Ubuntu version > 18.04 is required in Windows Subsystem For Linux[/] (your distribution = \"{distrib} v{distribver}\")");
+                AnsiConsole.MarkupLine($"[red]Sorry, Ubuntu version >= 18.04 is required in Windows Subsystem For Linux[/] (your distribution = \"{distrib} v{distribver}\")");
                 AnsiConsole.MarkupLine("Please go to the URL below and select the following Linux distribution : [white]Ubuntu 20.04[/]");
                 AnsiConsole.MarkupLine("[yellow underline]https://docs.microsoft.com/en-us/windows/wsl/install-win10#step-6---install-your-linux-distribution-of-choice[/]");
                 AnsiConsole.WriteLine();
@@ -193,7 +191,7 @@ namespace CognitiveFactory.Installer
             } 
             else if (winDockerVersion.Major<20 || (winDockerVersion.Major==20 && winDockerVersion.Minor<10))
             {
-                AnsiConsole.MarkupLine($"[red]Sorry, Docker Desktop for Windows version > 20.10 is required[/] (your version = \"{winDockerVersion}\")");
+                AnsiConsole.MarkupLine($"[red]Sorry, Docker engine version >= 20.10 is required[/] (your version = \"{winDockerVersion}\")");
                 AnsiConsole.MarkupLine("Please go to the URL below to learn how to update Docker Desktop :");
                 AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/docker-for-windows/install/#updates[/]");
                 AnsiConsole.WriteLine();
@@ -226,17 +224,93 @@ namespace CognitiveFactory.Installer
             AnsiConsole.MarkupLine("You are now [bold green]READY[/] to continue the install procedure in Linux");
             AnsiConsole.WriteLine();
             AnsiConsole.MarkupLine("Open your Ubuntu command shell in Windows Subsystem for Linux and execute the command below :");
-            AnsiConsole.MarkupLine("[white]wget https://www.cognitivefactory.fr/download/cognitivefactory && chmod u+x cognitivefactory && cognitivefactory[/]");
+            AnsiConsole.MarkupLine("[white]wget https://www.cognitivefactory.fr/assets/cognitivefactory && chmod u+x cognitivefactory && cognitivefactory[/]");
             AnsiConsole.WriteLine();
             return 0;
         }
 
         private static int DoLinuxInstall()
         {
-            Console.WriteLine($"Running as admin ? {AdminHelpers.IsProcessElevated()}");
-            Console.ReadLine();
+            AnsiConsole.MarkupLine("2. [underline]Check Docker version[/] :");
+            AnsiConsole.WriteLine();
 
-            // https://hub.docker.com/editions/community/docker-ce-desktop-windows/
+            var linuxDockerVersion = Linux.Docker.CheckDockerVersion();
+            if (linuxDockerVersion == null)
+            {
+                AnsiConsole.MarkupLine($"[red]Docker is not available[/]");
+                if (Linux.Docker.CheckWindowsSubsystemForLinux())
+                {
+                    AnsiConsole.MarkupLine("Please go to the URL below to learn how to start Docker Desktop [white]from the Windows Start menu[/] :");
+                    AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/docker-for-windows/install/#start-docker-desktop[/]");
+                } 
+                else
+                {
+                    AnsiConsole.MarkupLine("Please go to the URL below to learn how to install Docker on Ubuntu :");
+                    AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/engine/install/ubuntu/[/]");
+                }
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+            else if (linuxDockerVersion.Major < 20 || (linuxDockerVersion.Major == 20 && linuxDockerVersion.Minor < 10))
+            {
+                AnsiConsole.MarkupLine($"[red]Sorry, Docker engine version >= 20.10 is required[/] (your version = \"{linuxDockerVersion}\")");
+                if (Linux.Docker.CheckWindowsSubsystemForLinux())
+                {
+                    AnsiConsole.MarkupLine("Please go to the URL below to learn how to update Docker Desktop :");
+                    AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/docker-for-windows/install/#updates[/]");
+                }
+                else
+                {
+                    AnsiConsole.MarkupLine("Please go to the URL below to learn how to upgrade Docker in Ubuntu :");
+                    AnsiConsole.MarkupLine("[yellow underline]https://docs.docker.com/engine/install/ubuntu/[/]");
+                }
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+
+            AnsiConsole.MarkupLine("Docker engine [bold green]OK[/]");
+            AnsiConsole.WriteLine();
+
+            AnsiConsole.MarkupLine("3. [underline]Install k3d.io[/] (Kubernetes clusters in Docker) :");
+            AnsiConsole.WriteLine();
+
+            var k3dVersion = Linux.K3d.CheckK3dVersion();
+            if (k3dVersion == null)
+            {
+                AnsiConsole.MarkupLine("[red]k3d is not installed[/]");
+                AnsiConsole.WriteLine("Please execute the command below to install it :");
+                AnsiConsole.MarkupLine("[white]wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash[/]");
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+            else if (k3dVersion.Major < 4 || (k3dVersion.Major == 4 && k3dVersion.Minor < 4))
+            {
+                AnsiConsole.MarkupLine($"[red]Sorry, k3d version >= 4.4 is required[/] (your version = \"{k3dVersion}\")");
+                AnsiConsole.WriteLine("Please execute the command below to update k3d to the latest version :");
+                AnsiConsole.MarkupLine("[white]wget -q -O - https://raw.githubusercontent.com/rancher/k3d/main/install.sh | bash[/]");
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+
+            AnsiConsole.MarkupLine("k3d version [bold green]OK[/]");
+            AnsiConsole.WriteLine();
+
+            AnsiConsole.MarkupLine("4. [underline]Check kubectl[/] (Kubernetes client) :");
+            AnsiConsole.WriteLine();
+
+            var kubectlVersion = Linux.Kubectl.CheckKubectlVersion();
+            if (kubectlVersion == null)
+            {
+                AnsiConsole.MarkupLine("[red]kubectl is not installed[/]");
+                AnsiConsole.WriteLine("Please execute the two commands below to install it :");
+                AnsiConsole.MarkupLine("[white]curl -LO \"https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl\"[/]");
+                AnsiConsole.MarkupLine("[white]sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl[/]");
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+
+            AnsiConsole.MarkupLine("kubectl [bold green]OK[/]");
+            AnsiConsole.WriteLine();
 
             return 0;
         }
