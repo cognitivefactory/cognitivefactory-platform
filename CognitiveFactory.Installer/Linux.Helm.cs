@@ -2,26 +2,26 @@
 
 namespace CognitiveFactory.Installer.Linux
 {
-    class Kubectl
+    class Helm
     {
         // Executes : kubectl version
         // Returns  : 
         // Version object if kubectl version was correctly parsed
         // null otherwise
-        public static Version CheckKubectlVersion()
+        public static Version CheckHelmVersion()
         {
             try
             {
                 string output;
                 string error;
-                int exitcode = Process.Run("kubectl", "version", 5, out output, out error);
+                int exitcode = Process.Run("helm", "version", 5, out output, out error);
                 if (!String.IsNullOrEmpty(output))
                 {
-                    // GitVersion:"v1.21.2"
-                    int versionIndex = output.IndexOf("GitVersion");
-                    if (versionIndex > 0 && (versionIndex + 13) < output.Length)
+                    // Version:"v3.2.1"
+                    int versionIndex = output.IndexOf("Version");
+                    if (versionIndex > 0 && (versionIndex + 10) < output.Length)
                     {
-                        versionIndex += 13;
+                        versionIndex += 10;
                         int firstDot = output.IndexOf('.', versionIndex);
                         int secondDot = output.IndexOf('.', firstDot + 1);
                         int eol = output.IndexOf('"', secondDot + 1);

@@ -312,6 +312,47 @@ namespace CognitiveFactory.Installer
             AnsiConsole.MarkupLine("kubectl [bold green]OK[/]");
             AnsiConsole.WriteLine();
 
+            AnsiConsole.MarkupLine("5. [underline]Check Helm[/] (package manager for Kubernetes) :");
+            AnsiConsole.WriteLine();
+
+            var helmVersion = Linux.Helm.CheckHelmVersion();
+            if (helmVersion == null || helmVersion.Major < 3)
+            {
+                AnsiConsole.MarkupLine("[red]Helm 3 is not installed[/]");
+                AnsiConsole.WriteLine("Please execute the command below to install it :");
+                AnsiConsole.MarkupLine("[white]curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash[/]");
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+
+            AnsiConsole.MarkupLine("Helm version [bold green]OK[/]");
+            AnsiConsole.WriteLine();
+
+            AnsiConsole.MarkupLine("6. [underline]Create Kubernetes cluster[/] :");
+            AnsiConsole.WriteLine();
+
+            var clusterName = "cogfactory-cluster";
+            if(!Linux.K3d.DoesK3dClusterExist(clusterName))
+            {
+                AnsiConsole.WriteLine($"Creating cluster {clusterName} ... (this may take several minutes)");
+                var commandIfError = Linux.K3d.CreateK3dCluster(clusterName: clusterName, agents: 3, hostWebPort: 8080);
+                if (commandIfError != null)
+                {
+                    AnsiConsole.MarkupLine("[red]Failed to create k3d cluster[/]");
+                    AnsiConsole.WriteLine("Please execute the command below to create it manually and fix errors :");
+                    AnsiConsole.MarkupLine($"[white]{commandIfError}[/]");
+                    AnsiConsole.WriteLine();
+                    return 1;
+                }
+                else
+                {
+                    AnsiConsole.WriteLine();
+                }
+            }
+
+            AnsiConsole.MarkupLine($"Cluster {clusterName} [bold green]OK[/]");
+            AnsiConsole.WriteLine();
+
             return 0;
         }
     }
