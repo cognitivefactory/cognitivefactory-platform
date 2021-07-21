@@ -344,6 +344,16 @@ namespace CognitiveFactory.Installer
                     AnsiConsole.WriteLine();
                     return 1;
                 }
+
+                AnsiConsole.WriteLine($"Labeling cluster nodes ...");
+                var messageIfError = Linux.K3d.LabelK3dClusterNodes(clusterName: clusterName, agents: 3);
+                if (messageIfError != null)
+                {
+                    AnsiConsole.MarkupLine("[red]Failed to label k3d cluster nodes[/]");
+                    AnsiConsole.MarkupLine($"{messageIfError}");
+                    AnsiConsole.WriteLine();
+                    return 1;
+                }
                 else
                 {
                     AnsiConsole.WriteLine();
@@ -351,6 +361,28 @@ namespace CognitiveFactory.Installer
             }
 
             AnsiConsole.MarkupLine($"Cluster {clusterName} [bold green]OK[/]");
+            AnsiConsole.WriteLine();
+
+            AnsiConsole.MarkupLine("7. [underline]Install Yugabyte database[/] :");
+            AnsiConsole.WriteLine();
+
+            var installName = "cogfactory-db";
+            AnsiConsole.WriteLine($"Installing database {installName} ... (this may take several minutes)");
+            var diagnosticIfError = Linux.Yugabyte.InstallYugabyteDB(installNamespace: installName, installName: installName);
+            if (diagnosticIfError != null)
+            {
+                AnsiConsole.MarkupLine("[red]Failed to install Yugabyte database[/]");
+                AnsiConsole.WriteLine("Installation error diagnostic :");
+                AnsiConsole.WriteLine(diagnosticIfError);
+                AnsiConsole.WriteLine();
+                return 1;
+            }
+            else
+            {
+                AnsiConsole.WriteLine();
+            }
+
+            AnsiConsole.MarkupLine($"Database {installName} [bold green]OK[/]");
             AnsiConsole.WriteLine();
 
             return 0;

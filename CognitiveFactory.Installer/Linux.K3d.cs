@@ -55,9 +55,9 @@ namespace CognitiveFactory.Installer.Linux
                     // NAME                 SERVERS   AGENTS   LOADBALANCER
                     // cogfactory-cluster   1/1       3/3      true
                     var lines = output.Split('\n');
-                    foreach(var line in lines)
+                    foreach (var line in lines)
                     {
-                        if(line.StartsWith(clusterName))
+                        if (line.StartsWith(clusterName))
                         {
                             return true;
                         }
@@ -73,8 +73,8 @@ namespace CognitiveFactory.Installer.Linux
         // Returns  : 
         // null is the cluster was sucessfully created
         // command string if the create command failed
-        public static string CreateK3dCluster(string clusterName, int agents = 3, int hostWebPort = 8080, 
-            bool createRegistry = true, bool exposeYDBPorts=true, bool mapHostPathDirectories=true, bool updateKubeconfig=true)
+        public static string CreateK3dCluster(string clusterName, int agents = 3, int hostWebPort = 8080,
+            bool createRegistry = true, bool exposeYDBPorts = true, bool mapHostPathDirectories = true, bool updateKubeconfig = true)
         {
             var command = $"cluster create {clusterName} --agents {agents} -p {hostWebPort}:80@loadbalancer";
             if (exposeYDBPorts)
@@ -99,8 +99,8 @@ namespace CognitiveFactory.Installer.Linux
             try
             {
                 string output;
-                string error;                
-                int exitcode = Process.Run("k3d", command, 300, out output, out error);
+                string error;
+                int exitcode = Process.Run("k3d", command, 900, out output, out error);
                 if (exitcode == 0 && String.IsNullOrEmpty(error) && !String.IsNullOrEmpty(output))
                 {
                     return null;
@@ -109,6 +109,33 @@ namespace CognitiveFactory.Installer.Linux
             catch (Exception)
             { }
             return command;
+        }
+
+        // Executes : kubectl label nodes ...
+        // Returns  : 
+        // null is the nodes were sucessfully labeled
+        // output+error string if the create command failed
+        public static string LabelK3dClusterNodes(string clusterName, int agents = 3, string label = "disk=local")
+        {
+            for (int i = 0; i < agents; i++)
+            {
+                var command = $"label --overwrite nodes k3d-{clusterName}-agent-{i} {label}";
+                try
+                {
+                    string output;
+                    string error;
+                    int exitcode = Process.Run("kubectl", command, 5, out output, out error);
+                    if (exitcode != 0 || !String.IsNullOrEmpty(error))
+                    {
+                        return output + " | " + error;
+                    }
+                }
+                catch (Exception e)
+                {
+                    return e.Message;
+                }
+            }
+            return null;
         }
     }
 }
